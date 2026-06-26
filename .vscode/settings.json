@@ -37,6 +37,7 @@
     "**/Thumbs.db": true,
     // "**/node_modules": true,
     // "**/.vscode": true,
-    "**/.next": true
+    "**/.next": true,
+    "**/*.md": true
   }
 }
