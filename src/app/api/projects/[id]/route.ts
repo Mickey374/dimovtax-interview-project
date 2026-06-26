@@ -4,17 +4,11 @@ import { redis } from "@/lib/redis";
 import { getServerSession } from "next-auth";
 
 // PUT Request handler for updating an existing project
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession();
 
   if (!session || !session.user || session.user.role !== "ADMIN") {
-    return NextResponse.json(
-      { message: "Unauthorized. Admin access required." },
-      { status: 403 },
-    );
+    return NextResponse.json({ message: "Unauthorized. Admin access required." }, { status: 403 });
   }
 
   try {
@@ -27,10 +21,7 @@ export async function PUT(
     });
 
     if (!existingProject) {
-      return NextResponse.json(
-        { message: "Project not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ message: "Project not found" }, { status: 404 });
     }
 
     // Secondly, update the project with the new data
@@ -58,31 +49,19 @@ export async function PUT(
       await redis.del(`projects:user:${body.assignedToId}`);
     }
 
-    return NextResponse.json(
-      { message: "Project updated successfully", project: updatedProject },
-      { status: 200 },
-    );
+    return NextResponse.json({ message: "Project updated successfully", project: updatedProject }, { status: 200 });
   } catch (error) {
     console.error("Error updating project:", error);
-    return NextResponse.json(
-      { message: "Internal Server Error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }
 
 // DELETE Request handler for deleting a project
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession();
 
   if (!session || !session.user || session.user.role !== "ADMIN") {
-    return NextResponse.json(
-      { message: "Unauthorized. Admin access required." },
-      { status: 403 },
-    );
+    return NextResponse.json({ message: "Unauthorized. Admin access required." }, { status: 403 });
   }
 
   try {
@@ -94,10 +73,7 @@ export async function DELETE(
     });
 
     if (!projectToDelete) {
-      return NextResponse.json(
-        { message: "Project not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ message: "Project not found" }, { status: 404 });
     }
 
     await db.project.delete({

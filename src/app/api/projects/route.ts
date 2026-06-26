@@ -42,10 +42,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(projects, { status: 200 });
   } catch (error) {
     console.error("Error fetching projects:", error);
-    return NextResponse.json(
-      { message: "Internal Server Error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }
 
@@ -55,10 +52,7 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user || session.user.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Unauthorized. Admin access required." },
-        { status: 403 },
-      );
+      return NextResponse.json({ message: "Unauthorized. Admin access required." }, { status: 403 });
     }
 
     const body = await req.json();
@@ -66,14 +60,10 @@ export async function POST(req: NextRequest) {
 
     if (!validation.success) {
       const validationError = fromZodError(validation.error);
-      return NextResponse.json(
-        { message: validationError.message },
-        { status: 400 },
-      );
+      return NextResponse.json({ message: validationError.message }, { status: 400 });
     }
 
-    const { title, description, status, deadline, budget, assignedToId } =
-      validation.data;
+    const { title, description, status, deadline, budget, assignedToId } = validation.data;
 
     const newProject = await db.project.create({
       data: {
@@ -93,15 +83,9 @@ export async function POST(req: NextRequest) {
       await redis.del(`projects:user:${assignedToId}`);
     }
 
-    return NextResponse.json(
-      { message: "Project created successfully", project: newProject },
-      { status: 201 },
-    );
+    return NextResponse.json({ message: "Project created successfully", project: newProject }, { status: 201 });
   } catch (error) {
     console.error("Error creating project:", error);
-    return NextResponse.json(
-      { message: "Internal Server Error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }

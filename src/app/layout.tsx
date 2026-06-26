@@ -8,9 +8,18 @@ const inter = localFont({
   weight: "100 200 300 400 500 600 700 800 900",
 });
 
+const spaceGrotesk = localFont({
+  src: "../fonts/SpaceGroteskVF.ttf",
+  variable: "--font-space-grotesk",
+  weight: "300 400 500 600 700",
+});
+
 export const metadata: Metadata = {
   title: "Dimovtax Interview Project",
   description: "A SaaS dashboard app built with Next.js, TypeScript, Tailwind CSS, and Prisma.",
+  icons: {
+    icon: "/images/site-logo.svg",
+  },
 };
 
 export default function RootLayout({
@@ -19,8 +28,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className={`${inter.variable} flex min-h-full flex-col`}>{children}</body>
+    <html lang="en" className={`${inter.className} ${spaceGrotesk.variable} flex-colh-full flex antialiased`}>
+      <body className={`flex min-h-full flex-col`}>{children}</body>
     </html>
   );
 }
