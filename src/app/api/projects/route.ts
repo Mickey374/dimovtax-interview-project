@@ -1,0 +1,107 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+
+import { db } from "@/lib/db";
+import { redis } from "@/lib/redis";
+import { authOptions } from "@/lib/auth";
+
+import { fromZodError } from "zod-validation-error";
+import { CreateProjectSchema } from "@/lib/schemas";
+
+// GET Request handler for fetching projects
+export async function GET(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { user } = session;
+    const isAdmin = user.role === "ADMIN";
+    const cacheKey = isAdmin ? "projects:all" : `projects:user:${user.id}`;
+
+    // Check Redis cache first
+    const cachedProjects = await redis.get(cacheKey);
+
+    // Let upstash auto parses the JSON
+    if (cachedProjects) {
+      return NextResponse.json(cachedProjects, { status: 200 });
+    }
+
+    // Fetch from DB
+    const projects = await db.project.findMany({
+      where: isAdmin ? {} : { userId: user.id }, // Herre, my logic is admins get all projects
+      include: { assignedTo: { select: { name: true, email: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Set the Cache in Redis with an expiration time of 1 hour
+    await redis.set(cacheKey, JSON.stringify(projects), { ex: 3600 });
+
+    return NextResponse.json(projects, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
+  }
+}
+
+// POST Request handler for creating a new project :: ADMIN ONLY
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user || session.user.role !== "ADMIN") {
+      return NextResponse.json(
+        { message: "Unauthorized. Admin access required." },
+        { status: 403 },
+      );
+    }
+
+    const body = await req.json();
+    const validation = CreateProjectSchema.safeParse(body);
+
+    if (!validation.success) {
+      const validationError = fromZodError(validation.error);
+      return NextResponse.json(
+        { message: validationError.message },
+        { status: 400 },
+      );
+    }
+
+    const { title, description, status, deadline, budget, assignedToId } =
+      validation.data;
+
+    const newProject = await db.project.create({
+      data: {
+        title,
+        description,
+        status,
+        deadline,
+        budget,
+        userId: assignedToId,
+      },
+    });
+
+    // Invalidate caches
+    await redis.del("projects:all");
+
+    if (assignedToId) {
+      await redis.del(`projects:user:${assignedToId}`);
+    }
+
+    return NextResponse.json(
+      { message: "Project created successfully", project: newProject },
+      { status: 201 },
+    );
+  } catch (error) {
+    console.error("Error creating project:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
+  }
+}
