@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import ThemePicker from "./ThemePicker";
 
 const Navbar = () => {
   return (
@@ -15,8 +15,8 @@ const Navbar = () => {
 
       <p>Global Search here...</p>
 
-      <div className="flex-between gap-2">
-        <p>Theme icon</p>
+      <div className="flex-between gap-5">
+        <ThemePicker />
         <p>Profile icon</p>
       </div>
     </nav>
