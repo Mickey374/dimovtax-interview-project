@@ -31,7 +31,8 @@ model User {
   id        String    @id @default(cuid())
   email     String    @unique
   name      String
-  password  String
+  password  String?
+  image     String?
   role      Role      @default(USER)
   projects  Project[]     // A user can have multiple projects, so I created 1-to-many relationship between User and Project models
   createdAt DateTime  @default(now())

@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-
-import { db } from "@/lib/db";
-import { redis } from "@/lib/redis";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 
 import { fromZodError } from "zod-validation-error";
 import { CreateProjectSchema } from "@/lib/schemas";
+import { db } from "@/lib/db";
+import { redis } from "@/lib/redis";
 
 // GET Request handler for fetching projects
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session || !session.user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -49,7 +47,7 @@ export async function GET(req: NextRequest) {
 // POST Request handler for creating a new project :: ADMIN ONLY
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session || !session.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ message: "Unauthorized. Admin access required." }, { status: 403 });

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { redis } from "@/lib/redis";
-import { getServerSession } from "next-auth";
+import { auth } from "@/lib/auth";
 
 // PUT Request handler for updating an existing project
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = await getServerSession();
+  const session = await auth();
 
   if (!session || !session.user || session.user.role !== "ADMIN") {
     return NextResponse.json({ message: "Unauthorized. Admin access required." }, { status: 403 });
@@ -58,7 +58,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
 // DELETE Request handler for deleting a project
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = await getServerSession();
+  const session = await auth();
 
   if (!session || !session.user || session.user.role !== "ADMIN") {
     return NextResponse.json({ message: "Unauthorized. Admin access required." }, { status: 403 });
