@@ -8,7 +8,7 @@ import ROUTES from "@/constants/route";
 const SocialAuthForm = () => {
   const handleSignInWithGoogle = async (provider: "google" | "facebook") => {
     try {
-      await signIn(provider, { callbackUrl: ROUTES.HOME, redirect: false });
+      await signIn(provider, { callbackUrl: ROUTES.HOME, redirect: true });
     } catch (error) {
       console.log(error);
       toast.error("Sign in with Google failed", {

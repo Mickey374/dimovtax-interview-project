@@ -9,7 +9,9 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
         <div className="flex items-center justify-between gap-2">
           <div className="space-y-2.5">
             <h1 className="h2-bold text-dark100_light900">Login to Dimovtax SaaS</h1>
-            <p className="paragraph-regular text-dark500_light400">Enter your credentials to access your account.</p>
+            <p className="paragraph-regular text-dark500_light400">
+              Complete fields below to create or access your account.
+            </p>
           </div>
           <Image src="/images/site-logo.svg" alt="Dimovtax Logo" width={40} height={40} className="object-contain" />
         </div>
