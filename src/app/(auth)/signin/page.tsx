@@ -10,7 +10,9 @@ import ROUTES from "@/constants/route";
 const SignIn = () => {
   const router = useRouter();
 
-  const handleSignIn = async (data: TSignInSchema) => {
+  const handleSignIn = async (
+    data: TSignInSchema
+  ): Promise<{ success: boolean; data?: TSignInSchema; error?: string }> => {
     try {
       const result = await signIn("credentials", {
         redirect: false,
