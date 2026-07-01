@@ -1,8 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z, ZodType } from "zod";
-import { Controller, DefaultValues, FieldValues, Path, SubmitHandler, useForm } from "react-hook-form";
+import { Controller, DefaultValues, FieldValues, Path, useForm } from "react-hook-form";
+import type { Resolver } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
@@ -12,15 +12,15 @@ import Link from "next/link";
 import ROUTES from "@/constants/route";
 
 interface AuthFormProps<T extends FieldValues> {
-  schema: ZodType<T>;
+  schema: Parameters<typeof zodResolver>[0];
   formType: "SIGN_IN" | "SIGN_UP";
   defaultValues: T;
   onSubmit: (data: T) => Promise<{ success: boolean; data?: T; error?: string }>;
 }
 
 const AuthForm = <T extends FieldValues>({ formType, schema, defaultValues, onSubmit }: AuthFormProps<T>) => {
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  const form = useForm<T>({
+    resolver: zodResolver(schema) as unknown as Resolver<T, undefined, T>,
     defaultValues: defaultValues as DefaultValues<T>,
   });
 
@@ -29,7 +29,7 @@ const AuthForm = <T extends FieldValues>({ formType, schema, defaultValues, onSu
   return (
     <>
       <form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)} className="mt-10 space-y-6">
-        {Object.keys(defaultValues).map((field) => (
+        {Object.keys(defaultValues as Record<string, unknown>).map((field) => (
           <FieldGroup key={field} className="flex w-full flex-col gap-2">
             <FieldSet>
               <Controller
