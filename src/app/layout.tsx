@@ -5,6 +5,7 @@ import ThemeProvider from "@/context/Theme";
 import { Toaster } from "sonner";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/lib/auth";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = localFont({
   src: "../fonts/InterVF.ttf",
@@ -41,6 +42,7 @@ export default async function RootLayout({
             {children}
           </ThemeProvider>
           <Toaster />
+          <Analytics />
         </body>
       </SessionProvider>
     </html>
