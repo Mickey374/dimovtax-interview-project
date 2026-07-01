@@ -1,10 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import NavLinks from "./navbar/NavLinks";
-import ROUTES from "@/constants/route";
-import { Button } from "../ui/button";
-import Image from "next/image";
+import SignOutButton from "./SignOutButton";
 
 const LeftSidebar = () => {
   return (
@@ -14,18 +11,7 @@ const LeftSidebar = () => {
       </div>
 
       <div className="flex flex-col gap-3 p-6">
-        <Button className="small-medium btn-secondary min-h-10.25 w-full rounded-lg px-4 py-3 shadow-none" asChild>
-          <Link href={ROUTES.SIGN_OUT} className="flex items-center justify-center">
-            <Image
-              src="/icons/exit.svg"
-              alt="Sign out"
-              width={20}
-              height={20}
-              className="invert-colors mr-2.5 object-contain"
-            />
-            <span className="primary-text-gradient text-dark400_light900 px-4 py-3 max-lg:hidden">Sign Out</span>
-          </Link>
-        </Button>
+        <SignOutButton className="small-medium btn-secondary min-h-10.25 w-full rounded-lg px-4 py-3 shadow-none" />
       </div>
     </section>
   );

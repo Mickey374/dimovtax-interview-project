@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ThemePicker from "./ThemePicker";
 import MobileNavigation from "./MobileNavigation";
+import ProfileMenu from "./ProfileMenu";
 
 const Navbar = () => {
   return (
@@ -14,11 +15,9 @@ const Navbar = () => {
         </p>
       </Link>
 
-      <p>Global Search here...</p>
-
       <div className="flex-between gap-5">
         <ThemePicker />
-        <p>Profile icon</p>
+        <ProfileMenu />
         <MobileNavigation />
       </div>
     </nav>

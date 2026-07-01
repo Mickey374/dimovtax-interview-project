@@ -1,4 +1,4 @@
-'use client";';
+"use client";
 
 import React from "react";
 import { SheetClose } from "@/components/ui/sheet";
@@ -7,23 +7,30 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const NavLinks = ({ isMobileNav = false }: { isMobileNav?: boolean }) => {
   const pathName = usePathname();
-  const userId = "123"; // TODO: Replace with actual user ID logic from session data
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
   return (
     <>
       {sidebarNavItems.map((item) => {
+        if (item.adminOnly && !isAdmin) {
+          return null;
+        }
+
         const isActive = (pathName.includes(item.route) && item.route.length > 1) || pathName === item.route;
+        let route = item.route;
 
         if (item.route === "/profile") {
-          if (userId) item.route = `${item.route}/${userId}`;
+          if (session?.user?.id) route = `${item.route}/${session.user.id}`;
           else return null;
         }
 
         const LinkComponent = (
           <Link
-            href={item.route}
+            href={route}
             key={item.title}
             className={cn(
               isActive ? "primary-gradient text-light-900 rounded-lg" : "text-dark300_light900",
@@ -46,7 +53,7 @@ const NavLinks = ({ isMobileNav = false }: { isMobileNav?: boolean }) => {
             {LinkComponent}
           </SheetClose>
         ) : (
-          <React.Fragment key={item.route}>{LinkComponent}</React.Fragment>
+          <React.Fragment key={route}>{LinkComponent}</React.Fragment>
         );
       })}
     </>

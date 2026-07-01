@@ -15,7 +15,7 @@ export const sidebarNavItems = [
     imgURL: "/icons/suitcase.svg",
     title: "Projects",
     route: "/projects",
-    adminOnly: true,
+    adminOnly: false,
   },
   {
     imgURL: "/icons/user.svg",

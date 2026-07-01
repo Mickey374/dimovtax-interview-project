@@ -4,8 +4,7 @@ import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger 
 import Image from "next/image";
 import Link from "next/link";
 import NavLinks from "./NavLinks";
-import ROUTES from "@/constants/route";
-import { Button } from "@/components/ui/button";
+import SignOutButton from "../SignOutButton";
 const MobileNavigation = () => {
   return (
     <Sheet>
@@ -32,11 +31,7 @@ const MobileNavigation = () => {
 
             <div className="flex flex-col gap-3">
               <SheetClose asChild>
-                <Link href={ROUTES.SIGN_OUT}>
-                  <Button className="small-medium btn-secondary min-h-10.25 w-full rounded-lg px-4 py-3 shadow-none">
-                    <span className="primary-text-gradient">Sign Out</span>
-                  </Button>
-                </Link>
+                <SignOutButton className="small-medium btn-secondary min-h-10.25 w-full rounded-lg px-4 py-3 shadow-none" />
               </SheetClose>
             </div>
           </div>

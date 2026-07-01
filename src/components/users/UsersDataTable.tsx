@@ -15,65 +15,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import ProjectModal from "./ProjectModal";
-
-type User = {
-  id: string;
-  name: string | null;
-};
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  users: User[];
-  isAdmin: boolean;
-  isDashboard?: boolean;
 }
 
-export function DataTable<TData, TValue>({
-  columns,
-  data,
-  users,
-  isAdmin,
-  isDashboard,
-}: DataTableProps<TData, TValue>) {
+export function UsersDataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const tableColumns = isDashboard ? columns.filter((c) => c.id !== "actions") : columns;
-
   const table = useReactTable({
-    columns: tableColumns,
+    columns,
     data,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onColumnFiltersChange: setColumnFilters,
-    state: {
-      columnFilters,
-    },
-    meta: {
-      isAdmin,
-      users,
-    },
+    state: { columnFilters },
   });
 
   return (
     <div className="w-full">
-      {/* SEARCH INPUT */}
-      {!isDashboard && (
-        <div className="flex items-center justify-between py-4">
-          <Input
-            placeholder="Filter by project title..."
-            value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-            onChange={(event) => table.getColumn("title")?.setFilterValue(event.target.value)}
-            className="max-w-sm"
-          />
-          {/* ADD NEW PROJECT BUTTON */}
-          {isAdmin && <ProjectModal users={users} />}
-        </div>
-      )}
+      <div className="flex items-center justify-between py-4">
+        <Input
+          placeholder="Filter by name..."
+          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
+          className="max-w-sm"
+        />
+      </div>
 
-      {/* THE TABLE */}
       <div className="bg-card text-card-foreground rounded-md border">
         <Table className="mt-4 px-8 py-12">
           <TableHeader>
@@ -109,22 +80,14 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      {/* PAGINATION CONTROLS */}
-      {!isDashboard && (
-        <div className="flex items-center justify-end space-x-2 py-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }

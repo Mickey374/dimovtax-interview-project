@@ -5,6 +5,7 @@ import { fromZodError } from "zod-validation-error";
 import { CreateProjectSchema } from "@/lib/schemas";
 import { db } from "@/lib/db";
 import { redis } from "@/lib/redis";
+import { getProjectCacheKey, getProjectCacheKeysToInvalidate } from "@/lib/project-cache";
 
 // GET Request handler for fetching projects
 export async function GET(req: NextRequest) {
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
     const isAdmin = user.role === "ADMIN";
     
     const take = limit ? parseInt(limit, 10) : undefined;
-    const cacheKey = isAdmin ? `projects:all:${limit || 'none'}` : `projects:user:${user.id}:${limit || 'none'}`;
+    const cacheKey = getProjectCacheKey({ scope: isAdmin ? "all" : "user", userId: user.id, limit: take });
 
     // Check Redis cache first
     const cachedProjects = await redis.get(cacheKey);
@@ -81,11 +82,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Invalidate caches
-    await redis.del("projects:all");
-
-    if (assignedToId) {
-      await redis.del(`projects:user:${assignedToId}`);
-    }
+    await redis.del(...getProjectCacheKeysToInvalidate([assignedToId]));
 
     return NextResponse.json({ message: "Project created successfully", project: newProject }, { status: 201 });
   } catch (error) {

@@ -1,14 +1,22 @@
 import BudgetChart from "@/components/dashboard/BudgetChart";
 import StatusChart from "@/components/dashboard/StatusChart";
 import TeamChart from "@/components/dashboard/TeamChart";
-import { columns } from "@/components/projects/Columns";
+// import { columns } from "@/components/projects/ProjectColumns";
 import { DataTable } from "@/components/projects/DataTable";
-import { getProjects } from "@/lib/data";
+import { getProjects, getUsers } from "@/lib/data";
 import { Suspense } from "react";
 import TableSkeleton from "@/components/projects/TableSkeleton";
 import { auth } from "@/lib/auth";
+import { ProjectColumns } from "@/components/projects/ProjectColumns";
+import { redirect } from "next/navigation";
 
 const Dashboard = async () => {
+  const session = await auth();
+
+  if (session?.user?.role !== "ADMIN") {
+    redirect("/projects");
+  }
+
   const projects = await getProjects();
 
   return (
@@ -35,8 +43,17 @@ const DataTableWrapper = async ({ isDashboard }: { isDashboard?: boolean }) => {
   // Fetch only the 5 most recent projects for the dashboard table
   const recentProjects = await getProjects({ limit: 5 });
   const isAdmin = session?.user?.role === "ADMIN";
+  const users = await getUsers();
 
-  return <DataTable columns={columns} data={recentProjects} isAdmin={isAdmin} isDashboard={isDashboard} />;
+  return (
+    <DataTable
+      columns={ProjectColumns}
+      users={users}
+      data={recentProjects}
+      isAdmin={isAdmin}
+      isDashboard={isDashboard}
+    />
+  );
 };
 
 export default Dashboard;

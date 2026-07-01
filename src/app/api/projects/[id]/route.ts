@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { redis } from "@/lib/redis";
 import { auth } from "@/lib/auth";
+import { CreateProjectSchema } from "@/lib/schemas";
+import { fromZodError } from "zod-validation-error";
+import { getProjectCacheKeysToInvalidate } from "@/lib/project-cache";
 
 // PUT Request handler for updating an existing project
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
 
   if (!session || !session.user || session.user.role !== "ADMIN") {
@@ -13,7 +16,16 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   try {
     const body = await req.json();
-    const projectId = params.id;
+    const { id: projectId } = await params;
+
+    const validation = CreateProjectSchema.safeParse(body);
+
+    if (!validation.success) {
+      const validationError = fromZodError(validation.error);
+      return NextResponse.json({ message: validationError.message }, { status: 400 });
+    }
+
+    const { title, description, status, deadline, budget, assignedToId } = validation.data;
 
     // First check the project to see who it was origannly given
     const existingProject = await db.project.findUnique({
@@ -28,26 +40,16 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const updatedProject = await db.project.update({
       where: { id: projectId },
       data: {
-        title: body.title.trim(),
-        description: body.description.trim() || "",
-        status: body.status,
-        deadline: body.deadline ? new Date(body.deadline) : undefined,
-        budget: body.budget ? parseFloat(body.budget) : undefined,
-        userId: body.assignedToId, // New assigned user id
+        title,
+        description: description.trim(),
+        status,
+        deadline,
+        budget,
+        userId: assignedToId,
       },
     });
 
-    // Cache Invalidate the Admin data
-    await redis.del("projects:all");
-
-    if (existingProject.userId) {
-      // If the project was previously assigned to a user, invalidate that user's cache
-      await redis.del(`projects:user:${existingProject.userId}`);
-    }
-
-    if (body.assignedToId && body.assignedToId !== existingProject.userId) {
-      await redis.del(`projects:user:${body.assignedToId}`);
-    }
+    await redis.del(...getProjectCacheKeysToInvalidate([existingProject.userId, assignedToId]));
 
     return NextResponse.json({ message: "Project updated successfully", project: updatedProject }, { status: 200 });
   } catch (error) {
@@ -57,7 +59,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 // DELETE Request handler for deleting a project
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
 
   if (!session || !session.user || session.user.role !== "ADMIN") {
@@ -65,7 +67,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   }
 
   try {
-    const projectId = params.id;
+    const { id: projectId } = await params;
 
     // Find the project before deleting to get the userId for cache invalidation
     const projectToDelete = await db.project.findUnique({
@@ -80,11 +82,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       where: { id: projectId },
     });
 
-    // Invalidate caches
-    await redis.del("projects:all");
-    if (projectToDelete.userId) {
-      await redis.del(`projects:user:${projectToDelete.userId}`);
-    }
+    await redis.del(...getProjectCacheKeysToInvalidate([projectToDelete.userId]));
 
     return NextResponse.json({ message: "Project deleted successfully" }, { status: 200 });
   } catch (error) {

@@ -1,25 +1,27 @@
-
 import { ProjectStatus, Role } from "@prisma/client";
+
+export type ProjectAssignee = {
+  name: string | null;
+  email: string | null;
+};
+
+export type UserListItem = {
+  id: string;
+  name: string | null;
+  email: string;
+  role: Role;
+  createdAt: string;
+};
 
 export type Project = {
   id: string;
   title: string;
   description: string | null;
   status: ProjectStatus;
-  deadline: Date;
+  deadline: string;
   budget: number;
   userId: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  assignedTo?: { name: string; email: string } | null;
-};
-
-export type User = {
-  id: string;
-  email: string;
-  name: string;
-  image: string | null;
-  role: Role;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
+  assignedTo?: ProjectAssignee | null;
 };
