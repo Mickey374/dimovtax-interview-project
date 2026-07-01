@@ -10,6 +10,8 @@ export const SignInSchema = z.object({
     .max(100, { message: "Password cannot exceed 100 characters." }),
 });
 
+export type TSignInSchema = z.infer<typeof SignInSchema>;
+
 export const SignUpSchema = z.object({
   email: z
     .email({ pattern: z.regexes.email, message: "Please provide a valid email address." })

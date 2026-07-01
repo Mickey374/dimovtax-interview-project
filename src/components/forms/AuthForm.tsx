@@ -24,15 +24,11 @@ const AuthForm = <T extends FieldValues>({ formType, schema, defaultValues, onSu
     defaultValues: defaultValues as DefaultValues<T>,
   });
 
-  const handleSubmit: SubmitHandler<T> = async () => {
-    // TODO: Implement the actual submission logic here, e.g., calling an API endpoint for sign-in or sign-up.
-  };
-
   const buttonText = formType === "SIGN_IN" ? "Sign In" : "Sign Up";
 
   return (
     <>
-      <form id="form-rhf-demo" onSubmit={form.handleSubmit(handleSubmit)} className="mt-10 space-y-6">
+      <form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)} className="mt-10 space-y-6">
         {Object.keys(defaultValues).map((field) => (
           <FieldGroup key={field} className="flex w-full flex-col gap-2">
             <FieldSet>

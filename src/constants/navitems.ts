@@ -3,6 +3,7 @@ export const sidebarNavItems = [
     imgURL: "/icons/home.svg",
     title: "Dashboard",
     route: "/",
+    adminOnly: true,
   },
   {
     imgURL: "/icons/analytics.svg",
@@ -26,5 +27,6 @@ export const sidebarNavItems = [
     imgURL: "/icons/user.svg",
     title: "Profile",
     route: "/profile",
+    adminOnly: false,
   },
 ];

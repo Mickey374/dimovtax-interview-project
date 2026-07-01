@@ -1,15 +1,39 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { toast } from "sonner";
 import AuthForm from "@/components/forms/AuthForm";
-import { SignInSchema } from "@/lib/validations";
+import { SignInSchema, TSignInSchema } from "@/lib/validations";
+import ROUTES from "@/constants/route";
 
 const SignIn = () => {
+  const router = useRouter();
+
+  const handleSignIn = async (data: TSignInSchema) => {
+    const result = await signIn("credentials", {
+      redirect: false,
+      email: data.email,
+      password: data.password,
+    });
+
+    if (result?.error) {
+      toast.error("Sign in failed. Please check your credentials.");
+      return;
+    }
+
+    if (result?.ok) {
+      toast.success("Signed in successfully!");
+      router.push(ROUTES.HOME);
+    }
+  };
+
   return (
     <AuthForm
       formType="SIGN_IN"
       schema={SignInSchema}
       defaultValues={{ email: "", password: "" }}
-      onSubmit={(data: { email: string; password: string }) => Promise.resolve({ success: true, data })}
+      onSubmit={handleSignIn}
     />
   );
 };
