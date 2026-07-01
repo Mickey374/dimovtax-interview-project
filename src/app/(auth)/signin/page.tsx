@@ -11,20 +11,31 @@ const SignIn = () => {
   const router = useRouter();
 
   const handleSignIn = async (data: TSignInSchema) => {
-    const result = await signIn("credentials", {
-      redirect: false,
-      email: data.email,
-      password: data.password,
-    });
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: data.email,
+        password: data.password,
+      });
 
-    if (result?.error) {
-      toast.error("Sign in failed. Please check your credentials.");
-      return;
-    }
+      if (result?.error) {
+        toast.error("Sign in failed. Please check your credentials.");
+        return { success: false, error: result.error };
+      }
 
-    if (result?.ok) {
-      toast.success("Signed in successfully!");
-      router.push(ROUTES.HOME);
+      if (result?.ok) {
+        toast.success("Signed in successfully!");
+        router.push(ROUTES.HOME);
+        return { success: true, data };
+      }
+
+      return { success: false, error: "Unable to sign in." };
+    } catch (error) {
+      toast.error("Sign in failed. Please try again.");
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "An unexpected error occurred.",
+      };
     }
   };
 
