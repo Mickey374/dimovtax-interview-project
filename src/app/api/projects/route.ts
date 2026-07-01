@@ -15,9 +15,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    const { searchParams } = new URL(req.url);
+    const limit = searchParams.get("limit");
+
     const { user } = session;
     const isAdmin = user.role === "ADMIN";
-    const cacheKey = isAdmin ? "projects:all" : `projects:user:${user.id}`;
+    
+    const take = limit ? parseInt(limit, 10) : undefined;
+    const cacheKey = isAdmin ? `projects:all:${limit || 'none'}` : `projects:user:${user.id}:${limit || 'none'}`;
 
     // Check Redis cache first
     const cachedProjects = await redis.get(cacheKey);
@@ -32,6 +37,7 @@ export async function GET(req: NextRequest) {
       where: isAdmin ? {} : { userId: user.id }, // Herre, my logic is admins get all projects
       include: { assignedTo: { select: { name: true, email: true } } },
       orderBy: { createdAt: "desc" },
+      take,
     });
 
     // Set the Cache in Redis with an expiration time of 1 hour

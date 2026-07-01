@@ -2,7 +2,7 @@ import { Project } from "./types";
 import { headers } from "next/headers";
 
 // Function to fetch projects from DB-Client Side
-export const getProjects = async (): Promise<Project[]> => {
+export const getProjects = async ({ limit }: { limit?: number } = {}): Promise<Project[]> => {
   try {
     const headersList = await headers();
     const cookie = headersList.get("cookie");
@@ -11,7 +11,12 @@ export const getProjects = async (): Promise<Project[]> => {
       requestHeaders.set("cookie", cookie);
     }
 
-    const response = await fetch(`${process.env.NEXTAUTH_URL}/api/projects`, {
+    const url = new URL(`${process.env.NEXTAUTH_URL}/api/projects`);
+    if (limit) {
+      url.searchParams.append("limit", String(limit));
+    }
+
+    const response = await fetch(url.toString(), {
       cache: "no-store",
       headers: requestHeaders,
     });

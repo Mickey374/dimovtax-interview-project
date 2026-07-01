@@ -6,12 +6,6 @@ export const sidebarNavItems = [
     adminOnly: true,
   },
   {
-    imgURL: "/icons/analytics.svg",
-    title: "Analytics",
-    route: "/analytics",
-    adminOnly: true,
-  },
-  {
     imgURL: "/icons/users.svg",
     title: "Users",
     route: "/users",
