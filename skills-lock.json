@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "audit": {
+      "source": "jsmastery-pro/skills",
+      "sourceType": "github",
+      "skillPath": "skills/audit/SKILL.md",
+      "computedHash": "9ce277225fa0cfb283717e943150e9e61f590a9c79b08181ddc09dd32b5e40c9"
+    }
+  }
+}
