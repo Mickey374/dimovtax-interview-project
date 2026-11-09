@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import ProjectComments from "@/components/projects/ProjectComments";
 
 type ProjectPageProps = {
   params: Promise<{ id: string }>;
@@ -24,6 +25,10 @@ const ProjectPage = async ({ params }: ProjectPageProps) => {
     include: {
       assignedTo: {
         select: { name: true, email: true },
+      },
+      comments: {
+        orderBy: { createdAt: "asc" },
+        include: { user: { select: { id: true, name: true, image: true } } },
       },
     },
   });
@@ -73,6 +78,16 @@ const ProjectPage = async ({ params }: ProjectPageProps) => {
           </div>
         </CardContent>
       </Card>
+      <ProjectComments
+        projectId={project.id}
+        currentUserId={session.user.id}
+        isAdmin={session.user.role === "ADMIN"}
+        initialComments={project.comments.map((comment) => ({
+          ...comment,
+          createdAt: comment.createdAt.toISOString(),
+          updatedAt: comment.updatedAt.toISOString(),
+        }))}
+      />
     </section>
   );
 };
