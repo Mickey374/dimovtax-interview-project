@@ -3,6 +3,7 @@ import Link from "next/link";
 import ThemePicker from "./ThemePicker";
 import MobileNavigation from "./MobileNavigation";
 import ProfileMenu from "./ProfileMenu";
+import NotificationBell from "./NotificationBell";
 
 const Navbar = () => {
   return (
@@ -17,6 +18,7 @@ const Navbar = () => {
 
       <div className="flex-between gap-5">
         <ThemePicker />
+        <NotificationBell />
         <ProfileMenu />
         <MobileNavigation />
       </div>

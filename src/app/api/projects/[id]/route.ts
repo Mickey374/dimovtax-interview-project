@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { CreateProjectSchema } from "@/lib/schemas";
 import { fromZodError } from "zod-validation-error";
 import { getProjectCacheKeysToInvalidate } from "@/lib/project-cache";
+import { NOTIFICATION_TYPES } from "@/lib/notifications";
 
 // PUT Request handler for updating an existing project
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -37,16 +38,37 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     // Secondly, update the project with the new data
-    const updatedProject = await db.project.update({
-      where: { id: projectId },
-      data: {
-        title,
-        description: description.trim(),
-        status,
-        deadline,
-        budget,
-        userId: assignedToId,
-      },
+    const updatedProject = await db.$transaction(async (tx) => {
+      const project = await tx.project.update({
+        where: { id: projectId },
+        data: { title, description: description.trim(), status, deadline, budget, userId: assignedToId },
+      });
+
+      if (assignedToId && assignedToId !== existingProject.userId) {
+        await tx.notification.create({
+          data: {
+            userId: assignedToId,
+            projectId: project.id,
+            title: "Project assigned",
+            message: `You have been assigned to ${project.title}.`,
+            type: NOTIFICATION_TYPES.PROJECT_ASSIGNED,
+          },
+        });
+      }
+
+      if (assignedToId && status !== existingProject.status) {
+        await tx.notification.create({
+          data: {
+            userId: assignedToId,
+            projectId: project.id,
+            title: "Project status changed",
+            message: `${project.title} has been marked as ${status.toLowerCase().replace("_", " ")}.`,
+            type: NOTIFICATION_TYPES.PROJECT_STATUS_CHANGED,
+          },
+        });
+      }
+
+      return project;
     });
 
     await redis.del(...getProjectCacheKeysToInvalidate([existingProject.userId, assignedToId]));

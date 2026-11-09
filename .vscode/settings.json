@@ -39,5 +39,8 @@
     // "**/.vscode": true,
     "**/.next": true
     // "**/*.md": true
+  },
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
   }
 }

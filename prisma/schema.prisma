@@ -8,8 +8,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -25,7 +25,6 @@ enum ProjectStatus {
   COMPLETED
 }
 
-
 // MODELS
 model User {
   id        String    @id @default(cuid())
@@ -34,24 +33,46 @@ model User {
   password  String?
   image     String?
   role      Role      @default(USER)
-  projects  Project[]     // A user can have multiple projects, so I created 1-to-many relationship between User and Project models
+  projects  Project[] // A user can have multiple projects, so I created 1-to-many relationship between User and Project models
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
+  notifications Notification[]
 }
 
 model Project {
-  id          String    @id @default(cuid())
+  id          String        @id @default(cuid())
   title       String
   description String?
   status      ProjectStatus @default(ACTIVE)
   deadline    DateTime
   budget      Float
 
-  userId      String?
-  assignedTo  User?     @relation(fields: [userId], references: [id]) // A project can be assigned to a user, so I created 1-to-1 relationship between Project and User models
+  userId     String?
+  assignedTo User?   @relation(fields: [userId], references: [id]) // A project can be assigned to a user, so I created 1-to-1 relationship between Project and User models
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  notifications Notification[]
 
   @@index([status]) // Index on status help for filtering queries
+}
+
+model Notification {
+  id      String  @id @default(cuid())
+  userId  String
+  title   String
+  message String
+  type    String
+  isRead  Boolean @default(false)
+
+  projectId String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt])
 }

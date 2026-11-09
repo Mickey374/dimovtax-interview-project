@@ -6,6 +6,7 @@ import { CreateProjectSchema } from "@/lib/schemas";
 import { db } from "@/lib/db";
 import { redis } from "@/lib/redis";
 import { getProjectCacheKey, getProjectCacheKeysToInvalidate } from "@/lib/project-cache";
+import { NOTIFICATION_TYPES } from "@/lib/notifications";
 
 // GET Request handler for fetching projects
 export async function GET(req: NextRequest) {
@@ -70,15 +71,24 @@ export async function POST(req: NextRequest) {
 
     const { title, description, status, deadline, budget, assignedToId } = validation.data;
 
-    const newProject = await db.project.create({
-      data: {
-        title,
-        description,
-        status,
-        deadline,
-        budget,
-        userId: assignedToId,
-      },
+    const newProject = await db.$transaction(async (tx) => {
+      const project = await tx.project.create({
+        data: { title, description, status, deadline, budget, userId: assignedToId },
+      });
+
+      if (assignedToId) {
+        await tx.notification.create({
+          data: {
+            userId: assignedToId,
+            projectId: project.id,
+            title: "Project assigned",
+            message: `You have been assigned to ${project.title}.`,
+            type: NOTIFICATION_TYPES.PROJECT_ASSIGNED,
+          },
+        });
+      }
+
+      return project;
     });
 
     // Invalidate caches
