@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const PROJECT_NOTIFICATION_REFRESH_EVENT = "project-notification-refresh";
+const NOTIFICATION_POLL_INTERVAL_MS = 30_000;
 
 type Notification = {
   id: string;
@@ -27,6 +28,7 @@ const NotificationBell = () => {
   const [data, setData] = useState<NotificationResponse>({ notifications: [], unreadCount: 0 });
   const [isLoading, setIsLoading] = useState(false);
   const notificationPanelRef = useRef<HTMLDivElement>(null);
+  const notificationRequestRef = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
@@ -55,19 +57,48 @@ const NotificationBell = () => {
   }, [isOpen]);
 
   const loadNotifications = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch("/api/notifications", { cache: "no-store" });
-      if (!response.ok) {
-        throw new Error("Unable to load notifications");
-      }
-      setData((await response.json()) as NotificationResponse);
-    } catch (error) {
-      console.error("Error loading notifications:", error);
-    } finally {
-      setIsLoading(false);
+    if (notificationRequestRef.current) {
+      return notificationRequestRef.current;
     }
+
+    const request = (async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("/api/notifications", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Unable to load notifications");
+        }
+        setData((await response.json()) as NotificationResponse);
+      } catch (error) {
+        console.error("Error loading notifications:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+
+    notificationRequestRef.current = request;
+    await request;
+    notificationRequestRef.current = null;
   }, []);
+
+  useEffect(() => {
+    const refreshWhenActive = () => {
+      if (document.visibilityState === "visible") {
+        void loadNotifications();
+      }
+    };
+
+    void loadNotifications();
+    const intervalId = window.setInterval(refreshWhenActive, NOTIFICATION_POLL_INTERVAL_MS);
+    window.addEventListener("focus", refreshWhenActive);
+    document.addEventListener("visibilitychange", refreshWhenActive);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", refreshWhenActive);
+      document.removeEventListener("visibilitychange", refreshWhenActive);
+    };
+  }, [loadNotifications]);
 
   useEffect(() => {
     const handleProjectMutation = () => {

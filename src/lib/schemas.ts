@@ -17,3 +17,7 @@ export const CreateProjectSchema = zod.object({
     ),
   assignedToId: zod.string().optional().nullable(),
 });
+
+export const CommentSchema = zod.object({
+  content: zod.string().trim().min(1, "Comment cannot be empty").max(5000, "Comment is too long"),
+});
