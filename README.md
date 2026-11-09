@@ -75,6 +75,8 @@ UPSTASH_REDIS_REST_TOKEN="your-token"
 
 Keep secrets out of source control.
 
+Google sign in is optional during CI and local credentials only development. Configure both Google variables to enable the Google sign in button. The CI workflow still needs PostgreSQL, Redis, and `AUTH_SECRET` secrets for the production build.
+
 ## Installation
 
 ```bash

@@ -6,17 +6,17 @@ import { z } from "zod";
 import { db } from "./db";
 import bcrypt from "bcryptjs";
 
-if (!process.env.AUTH_GOOGLE_ID) {
-  throw new Error("Missing AUTH_GOOGLE_ID env var");
-}
-
-if (!process.env.AUTH_GOOGLE_SECRET) {
-  throw new Error("Missing AUTH_GOOGLE_SECRET env var");
-}
-
 if (!process.env.AUTH_SECRET) {
   throw new Error("Missing AUTH_SECRET env var");
 }
+
+const googleProvider =
+  process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
+    ? Google({
+        clientId: process.env.AUTH_GOOGLE_ID,
+        clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      })
+    : null;
 
 export const authConfig = {
   secret: process.env.AUTH_SECRET,
@@ -27,10 +27,7 @@ export const authConfig = {
     signIn: "/signin",
   },
   providers: [
-    Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET,
-    }),
+    ...(googleProvider ? [googleProvider] : []),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
