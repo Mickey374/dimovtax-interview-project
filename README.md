@@ -1,116 +1,156 @@
 # Dimovtax SaaS Dashboard
 
-Mini SaaS dashboard built with Next.js 16, TypeScript, Prisma, PostgreSQL, Redis, NextAuth, and Tailwind CSS. The project was designed around the interview brief in `docs/interview-task.pdf` and supports project management, role-based access, charts, authentication, and seeded demo data.
+Dimovtax is a project management dashboard built for the interview assessment. It supports authenticated users, role based access, project management, comments, notifications, dashboards, and cached project lists.
 
 ## Features
 
-- Authentication with credentials and Google sign-in through NextAuth.
-- Role-based authorization for `ADMIN` and `USER` accounts.
-- Projects table with search, filtering, pagination, create, edit, and delete.
-- User directory with role and join-date display.
-- Dashboard charts for budget, status, and team workload.
-- Profile page that shows the signed-in user and assigned projects.
-- Admin profile view that hides project lists because admins oversee the whole workspace.
-- Redis-backed caching for project listings with explicit invalidation after writes.
-- Responsive navigation for desktop and mobile.
-- The project uses seeded sample data for quick evaluation.
+### Authentication
 
-## Interview Requirements
+The application supports credentials sign in and Google sign in through NextAuth. Sessions use JWTs. Users have one of two roles:
 
-The implementation follows the core points in `docs/interview-task.pdf`:
+1. `ADMIN`, who can manage all projects and users.
+2. `USER`, who can view and work with projects assigned to them.
 
-- CRUD project management.
-- Search and filtering in table UI.
-- Modal-based project form.
-- Database-backed persistence.
-- Authentication.
-- Documentation and deployment readiness.
+### Project management
 
-## Tech Stack
+Admins can create, edit, and delete projects. Projects contain a title, description, status, deadline, budget, and optional assigned user.
 
-- Next.js 16 App Router
-- React 19
-- TypeScript
-- Prisma
-- PostgreSQL
-- Upstash Redis
-- NextAuth
-- Tailwind CSS
-- TanStack Table
-- Recharts
+### Comments
 
-## Project Structure
+Authorized users can view and create comments on a project. Users can edit and delete their own comments. Admins can delete any comment. Each comment shows its author, profile image, content, and creation time.
 
-- `src/app` - routes, layouts, API handlers.
-- `src/components` - dashboard, navigation, project, user, and UI components.
-- `src/lib` - auth, db, schemas, project helpers, and data access.
-- `prisma/schema.prisma` - database schema.
-- `prisma/seed.ts` - demo data seed script.
+### Notifications
 
-## Prerequisites
+The dashboard includes a notification bell with an unread count and recent notification list. Notifications are created for:
 
-- Node.js 20 or newer.
-- PostgreSQL database.
-- Upstash Redis database.
-- Google OAuth credentials if you want Google login.
-- NextAuth secret.
+1. Project assignment.
+2. Project status changes.
+3. New comments.
 
-## Environment Variables
+The bell refreshes when opened, when the page becomes active, and at a modest polling interval.
 
-Create a `.env` file with values similar to these:
+### Dashboard
+
+The dashboard includes project tables, search, filtering, pagination, status information, budget information, and workload charts.
+
+## Technology
+
+1. Next.js 16 App Router
+2. React 19
+3. TypeScript
+4. Prisma ORM
+5. PostgreSQL
+6. Upstash Redis
+7. NextAuth
+8. Tailwind CSS
+9. TanStack Table
+10. Recharts
+11. Sonner
+
+## Requirements
+
+You can use Node.js 20 or newer. The CI workflow uses Node.js 22.
+
+You also need:
+
+1. A PostgreSQL database.
+2. An Upstash Redis database.
+3. An authentication secret.
+4. Google OAuth credentials if Google sign in is enabled.
+
+## Environment variables
+
+Create a `.env` file in the project root:
 
 ```env
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
-DIRECT_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
-AUTH_SECRET="your-long-secret"
+DATABASE_URL="postgresql://user:password@host:5432/database"
+DIRECT_URL="postgresql://user:password@host:5432/database"
+AUTH_SECRET="replace-with-a-long-random-secret"
 AUTH_URL="http://localhost:3000"
 AUTH_GOOGLE_ID="your-google-client-id"
 AUTH_GOOGLE_SECRET="your-google-client-secret"
-UPSTASH_REDIS_REST_URL="https://..."
-UPSTASH_REDIS_REST_TOKEN="..."
+UPSTASH_REDIS_REST_URL="https://your-instance.upstash.io"
+UPSTASH_REDIS_REST_TOKEN="your-token"
 ```
 
-## Local Setup
+Keep secrets out of source control.
+
+## Installation
 
 ```bash
 npm install
 npx prisma generate
+```
+
+## Local database setup
+
+For local development, create and apply migrations with:
+
+```bash
 npx prisma migrate dev
 npx prisma db seed
+```
+
+The seed creates one admin account, five regular users, and twenty sample projects.
+
+## Cloud database setup
+
+For a deployed database, apply committed migrations with:
+
+```bash
+npx prisma migrate deploy
+npx prisma db seed
+```
+
+Use `migrate dev` for local development only. Do not use `migrate reset` against a shared or production database.
+
+## Start the application
+
+Development mode:
+
+```bash
 npm run dev
+```
+
+Production mode:
+
+```bash
+npm run build
+npm run start
 ```
 
 Open `http://localhost:3000`.
 
-## Seeded Demo Accounts
+The build command regenerates Prisma Client before building Next.js.
 
-The seed script creates one admin and five demo users.
+## Scripts
 
-- Admin email: `` /_Will be shared in email _/
-- Password: ``
+| Script | Purpose |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Generate Prisma Client and create a production build |
+| `npm run start` | Start the production server |
+| `npm run lint` | Run ESLint |
+| `npm run test` | Run the focused helper tests |
+| `npx prisma generate` | Generate Prisma Client |
+| `npx prisma migrate dev` | Create and apply a local migration |
+| `npx prisma migrate deploy` | Apply committed migrations |
+| `npx prisma db seed` | Load demo data |
 
-## Available Scripts
+## Project structure
 
-- `npm run dev` - start the development server.
-- `npm run build` - production build.
-- `npm run start` - run the production server.
-- `npm run lint` - lint the codebase.
-- `npm run test` - run the focused helper tests.
-
-## Authentication and Authorization
-
-- The app uses session-based auth through NextAuth.
-- Public routes are limited to sign-in and sign-up.
-- All dashboard routes are protected in `src/proxy.ts`.
-- Admin-only routes and UI actions are guarded on both the client and server.
-
-## Caching Behavior
-
-Project lists are cached in Redis for faster reads. The write handlers invalidate every list variant after project create, update, and delete so the UI refreshes with the latest data immediately.
+```text
+src/app                 Next.js pages, layouts, and API routes
+src/components          Reusable dashboard and form components
+src/constants            Shared route and navigation constants
+src/lib                  Authentication, database, validation, and cache helpers
+prisma/schema.prisma    Database schema
+prisma/migrations       Committed database migrations
+prisma/seed.ts          Demo data seed script
+public                   Images and icons
+```
 
 ## Docker
-
-The repo includes a production-ready `Dockerfile` and `.dockerignore`.
 
 Build the image:
 
@@ -124,17 +164,10 @@ Run the container:
 docker run --rm -p 3000:3000 --env-file .env dimovtax-dashboard
 ```
 
-If you want to connect to external services in production, keep the same environment variables available in the container.
-
-## Notes
-
-- The profile page renders a summary card and the assigned projects for regular users.
-- Admin profiles intentionally hide assigned projects because the admin oversees the full project set.
-- The navigation profile button opens a menu with Profile and Sign Out actions.
-- The sign-out actions terminate the session and redirect back to the sign-in page.
-
 ## Troubleshooting
 
-- If the app shows stale project data, verify Redis cache invalidation and confirm the API route is using the latest cache keys.
-- If authentication redirects behave unexpectedly, check `src/proxy.ts` and the session configuration in `src/lib/auth.config.ts`.
-- If Docker builds fail, ensure `npx prisma generate` can access the database schema and that all environment variables are available during build and runtime.
+If Prisma reports a missing relation during deployment, make sure the deployment includes both `prisma/schema.prisma` and the matching migration files. The build script runs `prisma generate`, so a fresh deployment should regenerate the client.
+
+If project data looks stale, check the Upstash Redis variables and the project cache invalidation logic.
+
+If authentication fails, check `AUTH_SECRET`, `AUTH_URL`, the Google credentials, and the route protection in `src/proxy.ts`.
