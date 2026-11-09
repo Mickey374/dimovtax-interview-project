@@ -36,7 +36,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <SessionProvider session={session}>
+      <SessionProvider session={session} refetchOnWindowFocus={false} refetchInterval={0}>
         <body className={`${inter.className} ${spaceGrotesk.variable} antialiased`}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
             {children}

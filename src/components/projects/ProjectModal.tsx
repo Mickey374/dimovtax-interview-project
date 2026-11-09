@@ -68,6 +68,7 @@ const ProjectModal = ({ project, users = [] }: ProjectModalProps) => {
 
       toast.success(`Project ${isEditing ? "updated" : "created"} successfully!`);
       setIsOpen(false);
+      window.dispatchEvent(new Event("project-notification-refresh"));
 
       // Refresh the page data after a successful mutation
       router.refresh();
